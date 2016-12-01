@@ -99,7 +99,7 @@ namespace Day1
 
         static void Main(string[] args)
         {
-            ReadInput("C:\\Users\\Felix Fritz\\Documents\\Visual Studio 2015\\Projects\\Day1\\Day1\\Day1_Input.txt");
+            ReadInput("Input.txt");
             Pos myPos = new Pos(0,0);
             foreach(Move m in movements)
             {
