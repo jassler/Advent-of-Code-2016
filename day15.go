@@ -70,7 +70,7 @@ func calculateSequentially(genA, genB *Generator) int {
 func main() {
 
 	test := flag.Bool("test", false, "Use test variables")
-	buffer := flag.Int("buffer", -1, "Values to buffer in concurrent calculation. If set to -1, calculate sequentially.")
+	buffer := flag.Int("buffer", -1, "How many values to buffer in channels. If set to -1, calculate sequentially.")
 	flag.Parse()
 
 	genA := &Generator{
