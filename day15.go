@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"strings"
 	"time"
 )
 
@@ -72,7 +70,7 @@ func calculateSequentially(genA, genB *Generator) int {
 func main() {
 
 	test := flag.Bool("test", false, "Use test variables")
-	//buffer := flag.Int("buffer", -1, "Values to buffer in concurrent calculation. If set to -1, calculate sequentially.")
+	buffer := flag.Int("buffer", -1, "Values to buffer in concurrent calculation. If set to -1, calculate sequentially.")
 	flag.Parse()
 
 	genA := &Generator{
@@ -97,61 +95,19 @@ func main() {
 	var count int
 	var elapsed time.Duration
 
-	// calculate sequential duration
-	{
+	// if buffer < 0, calculate pairs sequentially
+	// otherwise use some go channel magic
+	if *buffer < 0 {
 		start := time.Now()
 		count = calculateSequentially(genA, genB)
 		elapsed = time.Since(start)
-	}
 
-	timeSequential := elapsed.Seconds()
-
-	bufferMeasurements := []float64{}
-	topRow := []int{}
-	amount := 1000
-	add := 1
-
-	for buffer := 0; buffer <= amount; buffer += add {
-		fmt.Print(buffer)
-		if buffer%(add*10) == 0 && buffer > 10 {
-			add *= 10
-		}
-
+	} else {
 		start := time.Now()
-		count = calculateConcurrently(genA, genB, buffer)
+		count = calculateConcurrently(genA, genB, *buffer)
 		elapsed = time.Since(start)
-
-		bufferMeasurements = append(bufferMeasurements, elapsed.Seconds())
-		topRow = append(topRow, buffer)
-		fmt.Println(" ", elapsed.Seconds())
 	}
 
-	buffered := fmt.Sprint(bufferMeasurements)
-	buffered = strings.Trim(buffered, "[]")
-	buffered = strings.Replace(buffered, " ", ";", -1)
-
-	topString := fmt.Sprint(topRow)
-	topString = strings.Trim(topString, "[]")
-	topString = strings.Replace(topString, " ", ";", -1)
-
-	file := fmt.Sprintf("buffer;%s\nbuffered;%s\nsequentially;%.3f", topString, buffered, timeSequential)
-	ioutil.WriteFile("measurements.txt", []byte(file), 0644)
-
-	fmt.Println(count)
-
-	// if buffer < 0, calculate pairs sequentially
-	// otherwise use some go channel magic
-	// if *buffer < 0 {
-	// 	start := time.Now()
-	// 	count = calculateSequentially(genA, genB)
-	// 	elapsed = time.Since(start)
-
-	// } else {
-	// 	start := time.Now()
-	// 	count = calculateConcurrently(genA, genB, *buffer)
-	// 	elapsed = time.Since(start)
-	// }
-
-	// fmt.Println("Total count:", count)
-	// fmt.Println("Elapsed time:", elapsed)
+	fmt.Println("Total count:", count)
+	fmt.Println("Elapsed time:", elapsed)
 }
